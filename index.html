@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SnapCalc</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#eef1f4;--card:#fff;--ink:#16202a;--mute:#6b7785;--line:#d9e0e7;--acc:#ff7a1a;--acc2:#e55f00;--disp:#1b2630;--dispink:#9dffb8}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f151b;--card:#18212a;--ink:#eef2f6;--mute:#8d9aa8;--line:#2a3643;--disp:#0a0f14}}
+:root[data-theme="dark"]{--bg:#0f151b;--card:#18212a;--ink:#eef2f6;--mute:#8d9aa8;--line:#2a3643;--disp:#0a0f14}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;min-height:100vh}
+.app{max-width:480px;margin:0 auto;padding:16px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:22px;letter-spacing:-.5px}
+.logo i{width:38px;height:38px;border-radius:10px;background:var(--disp);color:var(--dispink);display:grid;place-items:center;font:700 18px ui-monospace,Menlo,monospace;font-style:normal}
+.logo b{color:var(--acc)}
+.top{display:flex;align-items:center;gap:8px;margin-bottom:14px;min-height:40px}
+.top h2{margin:0;font-size:18px;flex:1}
+.back{border:0;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:10px;height:38px;padding:0 12px;font-size:15px;cursor:pointer}
+.screen{display:none}.screen.on{display:block}
+.display{background:var(--disp);color:var(--dispink);border-radius:16px;padding:16px;font-family:ui-monospace,Menlo,Consolas,monospace;min-height:96px;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-end;margin:14px 0;word-break:break-all;text-align:right}
+.display small{color:#6f8a79;font-size:13px}.display strong{font-size:30px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.key{background:var(--card);border:1px solid var(--line);border-bottom-width:4px;border-radius:14px;padding:18px 10px;font-size:15px;font-weight:600;color:var(--ink);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}
+.key:active{transform:translateY(2px);border-bottom-width:2px}
+.key .ic{font-size:26px}
+.key.pri{background:var(--acc);border-color:var(--acc2);color:#fff}
+.btn{width:100%;border:0;border-radius:14px;padding:15px;font-size:16px;font-weight:700;cursor:pointer;margin-top:10px;background:var(--acc);color:#fff;border-bottom:4px solid var(--acc2)}
+.btn.sec{background:var(--card);color:var(--ink);border:1px solid var(--line);border-bottom-width:4px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-top:12px}
+input[type=text],textarea{width:100%;font:600 20px ui-monospace,Menlo,monospace;padding:14px;border-radius:12px;border:2px solid var(--line);background:var(--card);color:var(--ink)}
+input:focus,textarea:focus{outline:none;border-color:var(--acc)}
+.hint{color:var(--mute);font-size:13px;margin:8px 2px;line-height:1.45}
+.err{background:#ffe9e6;color:#9b2c1d;border-radius:12px;padding:12px;margin-top:12px;font-size:14px;display:none}
+.err.on{display:block}
+.mic{width:96px;height:96px;border-radius:50%;border:0;background:var(--acc);color:#fff;font-size:38px;cursor:pointer;display:block;margin:18px auto 8px;box-shadow:0 0 0 0 rgba(255,122,26,.5)}
+.mic.live{animation:p 1.2s infinite;background:#d92d20}
+@keyframes p{70%{box-shadow:0 0 0 22px rgba(217,45,32,0)}100%{box-shadow:0 0 0 0 rgba(217,45,32,0)}}
+.center{text-align:center}
+select{width:100%;padding:12px;border-radius:12px;border:2px solid var(--line);background:var(--card);color:var(--ink);font-size:16px}
+.pv{width:100%;max-height:50vh;object-fit:contain;border-radius:12px;background:var(--disp)}
+.res{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--line);font-family:ui-monospace,Menlo,monospace}
+.res:last-child{border:0}.res .e{color:var(--mute);font-size:15px;word-break:break-all}.res .a{font-weight:800;font-size:20px;white-space:nowrap}.res .bad{color:#c0392b;font-size:14px;font-weight:600}
+.row{display:flex;gap:8px}.row .btn{margin-top:10px}
+.hi{display:flex;align-items:center;gap:8px;padding:12px 0;border-bottom:1px solid var(--line)}
+.hi:last-child{border:0}.hi .m{flex:1;font-family:ui-monospace,Menlo,monospace;cursor:pointer;word-break:break-all}.hi .m span{display:block;color:var(--mute);font-size:12px;font-family:inherit}
+.del{border:1px solid var(--line);background:transparent;color:#c0392b;border-radius:10px;padding:8px 10px;cursor:pointer;font-size:14px}
+.spin{display:inline-block;width:16px;height:16px;border:3px solid #fff5;border-top-color:#fff;border-radius:50%;animation:r .8s linear infinite;vertical-align:-3px;margin-right:6px}
+@keyframes r{to{transform:rotate(360deg)}}
+</style></head><body><div class="app">
+
+<section id="home" class="screen on">
+ <div class="logo"><i>=</i><span>Snap<b>Calc</b></span></div>
+ <div class="display"><small>Speak, type or snap a calculation</small><strong>0</strong></div>
+ <div class="grid">
+  <button class="key pri" data-go="speak"><span class="ic">🎤</span>Speak your calculation</button>
+  <button class="key" data-go="type"><span class="ic">⌨️</span>Type a calculation</button>
+  <button class="key" data-go="camera"><span class="ic">📷</span>Take a picture</button>
+  <button class="key" data-go="history"><span class="ic">🕘</span>Calculation history</button>
+ </div>
+ <p class="hint center">Answers are computed on your device with a safe math engine. Nothing is ever run as code.</p>
+</section>
+
+<section id="speak" class="screen">
+ <div class="top"><button class="back" data-go="home">← Back</button><h2>Speak</h2></div>
+ <label class="hint" for="lang">Speaking language</label><select id="lang"></select>
+ <button class="mic" id="mic" aria-label="Speak your calculation">🎤</button>
+ <p class="hint center" id="micState" style="margin-top:0">Tap the microphone and say something like “2 plus 3 multiplied by 4”.</p>
+ <div class="display"><small id="heard">Heard: …</small><strong id="spokenExpr">—</strong></div>
+ <div class="err" id="speakErr"></div>
+ <button class="btn" id="speakCalc" disabled>Calculate</button>
+ <button class="btn sec" id="speakEdit" disabled>Edit expression</button>
+ <button class="btn sec" data-go="type" id="dictBtn">Use keyboard dictation</button>
+ <p class="hint center">Tap the field on the next screen, then the 🎤 on your phone keyboard and speak.</p>
+</section>
+
+<section id="type" class="screen">
+ <div class="top"><button class="back" data-go="home">← Back</button><h2>Type a calculation</h2></div>
+ <input type="text" id="typed" inputmode="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="e.g. (2+3)*4^2 / 5">
+ <p class="hint">Supports + − × ÷ ^ ( ) % and decimals, with correct order of operations.</p>
+ <div class="err" id="typeErr"></div>
+ <button class="btn" id="typeCalc">Calculate</button>
+</section>
+
+<section id="camera" class="screen">
+ <div class="top"><button class="back" data-go="home">← Back</button><h2>Take a picture</h2></div>
+ <div class="grid">
+  <button class="key pri" id="takeBtn"><span class="ic">📷</span>Take a picture</button>
+  <button class="key" id="upBtn"><span class="ic">🖼️</span>Upload screenshot</button>
+ </div>
+ <input type="file" id="camIn" accept="image/*" capture="environment" hidden>
+ <input type="file" id="fileIn" accept="image/*" hidden>
+ <div id="pvBox" class="card" style="display:none">
+  <img id="pv" class="pv" alt="Preview of your image">
+  <button class="btn" id="imgCalc">Calculate</button>
+  <button class="btn sec" id="imgAgain">Choose a different image</button>
+ </div>
+ <div class="err" id="imgErr"></div>
+ <p class="hint">Text is read from your image with AI, then every answer is calculated by SnapCalc’s own safe math engine.</p>
+</section>
+
+<section id="results" class="screen">
+ <div class="top"><button class="back" data-go="home">← Home</button><h2>Results</h2></div>
+ <div class="card" id="resList"></div>
+ <button class="btn" id="copyBtn">Copy answer</button>
+ <div class="row"><button class="btn sec" id="againBtn">Calculate again</button><button class="btn sec" id="tryBtn">Try another</button></div>
+</section>
+
+<section id="history" class="screen">
+ <div class="top"><button class="back" data-go="home">← Back</button><h2>History</h2></div>
+ <div class="card" id="hList"></div>
+ <button class="btn sec" id="clearAll">Delete all history</button>
+</section>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+let last={items:[],source:'type'}, imgBlob=null, spoken='';
+
+/* ---------- navigation ---------- */
+function go(n){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===n));window.scrollTo(0,0);if(n==='history')renderHistory();if(n!=='speak')stopMic()}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(b)go(b.dataset.go)});
+
+/* ---------- safe math engine (no eval) ---------- */
+function normalize(s){
+ return s.replace(/[×✕]/g,'*').replace(/[÷]/g,'/').replace(/[−–—]/g,'-').replace(/(\d)\s*[xX]\s*(?=[\d(.])/g,'$1*').replace(/(\d),(?=\d{3}\b)/g,'$1').replace(/\*\*/g,'^').replace(/=\s*[\d.,\s]*$/,'').trim();
+}
+function evaluate(src){
+ const s=normalize(src);if(!s)throw Error('Empty expression');
+ if(!/^[\d+\-*/^().%\s]+$/.test(s))throw Error('Only numbers and + − × ÷ ^ ( ) % are allowed');
+ const t=s.match(/\d+\.?\d*|\.\d+|[+\-*/^()%]/g)||[];let i=0;
+ const peek=()=>t[i],next=()=>t[i++];
+ function expr(){let v=term();while(peek()==='+'||peek()==='-'){const o=next(),r=term();v=o==='+'?v+r:v-r}return v}
+ function term(){let v=unary();while(peek()==='*'||peek()==='/'||peek()==='('){let o='*';if(peek()!=='(')o=next();const r=unary();if(o==='/'){if(r===0)throw Error('Cannot divide by zero');v=v/r}else v*=r}return v}
+ function unary(){if(peek()==='-'){next();return -unary()}if(peek()==='+'){next();return unary()}return pow()}
+ function pow(){let b=post();if(peek()==='^'){next();const e=unary();return Math.pow(b,e)}return b}
+ function post(){let v=atom();while(peek()==='%'){next();v/=100}return v}
+ function atom(){const x=next();if(x===undefined)throw Error('Expression is incomplete');
+  if(x==='('){const v=expr();if(next()!==')')throw Error('Missing closing bracket');return v}
+  if(/^[\d.]/.test(x))return parseFloat(x);throw Error('Unexpected “'+x+'”')}
+ const v=expr();if(i<t.length)throw Error('Unexpected “'+t[i]+'”');
+ if(!isFinite(v))throw Error('Result is too large');
+ return v;
+}
+const fmt=v=>String(parseFloat(v.toPrecision(12)));
+function run(list,source){
+ last={items:list.map(e=>{try{return{expr:e,ans:fmt(evaluate(e))}}catch(x){return{expr:e,err:x.message}}}),source};
+ const ok=last.items.filter(x=>x.ans!==undefined);if(ok.length)saveHistory(ok);
+ showResults();
+}
+function showResults(){
+ $('resList').innerHTML='';
+ last.items.forEach(x=>{const r=document.createElement('div');r.className='res';
+  const e=document.createElement('div');e.className='e';e.textContent=normalize(x.expr)+(x.ans!==undefined?' =':'');
+  const a=document.createElement('div');a.className=x.ans!==undefined?'a':'bad';a.textContent=x.ans!==undefined?x.ans:x.err;
+  r.append(e,a);$('resList').append(r)});
+ $('copyBtn').textContent='Copy answer';go('results');
+}
+
+/* ---------- history (localStorage, with fallback) ---------- */
+let mem=[];
+const loadH=()=>{try{return JSON.parse(localStorage.getItem('snapcalc_hist')||'[]')}catch(e){return mem}};
+const storeH=h=>{mem=h;try{localStorage.setItem('snapcalc_hist',JSON.stringify(h))}catch(e){}};
+function saveHistory(items){const h=loadH();items.forEach(x=>h.unshift({e:normalize(x.expr),a:x.ans,t:Date.now()}));storeH(h.slice(0,100))}
+function renderHistory(){
+ const h=loadH(),box=$('hList');box.innerHTML='';$('clearAll').style.display=h.length?'':'none';
+ if(!h.length){box.innerHTML='<p class="hint center">No calculations yet.</p>';return}
+ h.forEach((x,i)=>{const d=document.createElement('div');d.className='hi';
+  const m=document.createElement('div');m.className='m';m.title='Tap to reuse';m.textContent=x.e+' = '+x.a;
+  const s=document.createElement('span');s.textContent=new Date(x.t).toLocaleString();m.append(s);
+  m.onclick=()=>{$('typed').value=x.e;go('type')};
+  const b=document.createElement('button');b.className='del';b.textContent='Delete';b.setAttribute('aria-label','Delete this entry');
+  b.onclick=()=>{const l=loadH();l.splice(i,1);storeH(l);renderHistory()};
+  d.append(m,b);box.append(d)});
+}
+$('clearAll').onclick=()=>{if(confirm('Delete all calculation history?')){storeH([]);renderHistory()}};
+
+/* ---------- typing ---------- */
+function typeGo(){const v=$('typed').value;const er=$('typeErr');er.classList.remove('on');
+ try{evaluate(v);run([v],'type')}catch(e){er.textContent=e.message;er.classList.add('on')}}
+$('typeCalc').onclick=typeGo;
+$('typed').addEventListener('keydown',e=>{if(e.key==='Enter')typeGo()});
+
+/* ---------- voice ---------- */
+const W={zero:0,one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,eleven:11,twelve:12,thirteen:13,fourteen:14,fifteen:15,sixteen:16,seventeen:17,eighteen:18,nineteen:19,twenty:20,thirty:30,forty:40,fifty:50,sixty:60,seventy:70,eighty:80,ninety:90};
+function speechToExpr(t){
+ let s=' '+t.toLowerCase().replace(/[?!,]/g,'')+' ';
+ const ph=[[/ what('s| is) /g,' '],[/ (calculate|equals?|please) /g,' '],[/ to the power of | raised to | power /g,' ^ '],[/ squared /g,' ^ 2 '],[/ cubed /g,' ^ 3 '],[/ (multiplied by|multiply by|times|into|cross) /g,' * '],[/ (divided by|divide by|over|upon) /g,' / '],[/ (plus|add|and) /g,' + '],[/ (minus|subtract|less) /g,' - '],[/ (percent|per cent) /g,' % '],[/ (point|dot) /g,' . '],[/ (open|left) (bracket|parenthesis) /g,' ( '],[/ (close|right) (bracket|parenthesis) /g,' ) ']];
+ for(let k=0;k<2;k++)ph.forEach(([r,v])=>s=s.replace(r,v));
+ s=s.replace(/ x /g,' * ').replace(/ ([a-z]+)-([a-z]+) /g,' $1 $2 ');
+ // number words → digits (e.g. "twenty five", "one hundred")
+ const w=s.trim().split(/\s+/),out=[];
+ for(let i=0;i<w.length;i++){let x=w[i];
+  if(x in W){let n=W[x];
+   if(n>=20&&w[i+1] in W&&W[w[i+1]]<10){n+=W[w[++i]]}
+   if(w[i+1]==='hundred'){n*=100;i++;if(w[i+1] in W&&W[w[i+1]]<100){n+=W[w[++i]]}}
+   if(w[i+1]==='thousand'){n*=1000;i++}
+   out.push(n)}
+  else if(x==='hundred')out.push('*100');else out.push(x)}
+ return out.join(' ').replace(/(\d)\s*\.\s*(\d)/g,'$1.$2').replace(/\s+/g,' ').trim();
+}
+const LANGS=[['en-US','English (US)'],['en-GB','English (UK)'],['en-IN','English (India)'],['en-AU','English (Australia)'],['en-CA','English (Canada)'],['hi-IN','Hindi · हिन्दी'],['ur-PK','Urdu · اردو'],['bn-BD','Bengali · বাংলা'],['pa-IN','Punjabi · ਪੰਜਾਬੀ'],['gu-IN','Gujarati · ગુજરાતી'],['mr-IN','Marathi · मराठी'],['ta-IN','Tamil · தமிழ்'],['te-IN','Telugu · తెలుగు'],['kn-IN','Kannada · ಕನ್ನಡ'],['ml-IN','Malayalam · മലയാളം'],['ne-NP','Nepali · नेपाली'],['ar-SA','Arabic · العربية'],['fa-IR','Persian · فارسی'],['he-IL','Hebrew · עברית'],['tr-TR','Turkish · Türkçe'],['es-ES','Spanish · Español (Spain)'],['es-MX','Spanish · Español (Mexico)'],['fr-FR','French · Français'],['de-DE','German · Deutsch'],['it-IT','Italian · Italiano'],['pt-BR','Portuguese · Português (Brazil)'],['pt-PT','Portuguese · Português (Portugal)'],['nl-NL','Dutch · Nederlands'],['sv-SE','Swedish · Svenska'],['da-DK','Danish · Dansk'],['nb-NO','Norwegian · Norsk'],['fi-FI','Finnish · Suomi'],['pl-PL','Polish · Polski'],['cs-CZ','Czech · Čeština'],['ro-RO','Romanian · Română'],['hu-HU','Hungarian · Magyar'],['el-GR','Greek · Ελληνικά'],['uk-UA','Ukrainian · Українська'],['ru-RU','Russian · Русский'],['zh-CN','Chinese · 普通话 (Simplified)'],['zh-TW','Chinese · 國語 (Traditional)'],['yue-Hant-HK','Cantonese · 粵語'],['ja-JP','Japanese · 日本語'],['ko-KR','Korean · 한국어'],['th-TH','Thai · ไทย'],['vi-VN','Vietnamese · Tiếng Việt'],['id-ID','Indonesian · Bahasa Indonesia'],['ms-MY','Malay · Bahasa Melayu'],['fil-PH','Filipino'],['sw-KE','Swahili · Kiswahili'],['af-ZA','Afrikaans']];
+(function(){const s=$('lang');LANGS.forEach(([c,n])=>{const o=document.createElement('option');o.value=c;o.textContent=n;s.append(o)});
+ let v='';try{v=localStorage.getItem('snapcalc_lang')||''}catch(e){}
+ if(!v){const n=(navigator.language||'en-US');v=(LANGS.find(l=>l[0]===n)||LANGS.find(l=>l[0].split('-')[0]===n.split('-')[0])||LANGS[0])[0]}
+ s.value=v;s.onchange=()=>{stopMic();try{localStorage.setItem('snapcalc_lang',s.value)}catch(e){}}})();
+function cleanSpeech(t){const dig={'٠':0,'١':1,'٢':2,'٣':3,'٤':4,'٥':5,'٦':6,'٧':7,'٨':8,'٩':9,'०':0,'१':1,'२':2,'३':3,'४':4,'५':5,'६':6,'७':7,'८':8,'९':9,'۰':0,'۱':1,'۲':2,'۳':3,'۴':4,'۵':5,'۶':6,'۷':7,'۸':8,'۹':9};
+ return normalize(t.replace(/[٠-٩०-९۰-۹]/g,c=>dig[c])).replace(/[^\d+\-*/^().%\s]/g,' ').replace(/\s+/g,' ').trim()}
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;let rec=null,listening=false;
+function stopMic(){if(rec&&listening){try{rec.stop()}catch(e){}}listening=false;$('mic').classList.remove('live')}
+$('mic').onclick=()=>{
+ const er=$('speakErr');er.classList.remove('on');
+ if(!SR){er.textContent='Speech recognition isn’t available in this view. Tap “Use keyboard dictation” below instead.';er.classList.add('on');return}
+ if(listening){stopMic();return}
+ rec=new SR();rec.lang=$('lang').value;rec.interimResults=true;rec.maxAlternatives=1;
+ rec.onstart=()=>{listening=true;$('mic').classList.add('live');$('micState').textContent='Listening… tap again to stop.'};
+ rec.onresult=e=>{let t='';for(const r of e.results)t+=r[0].transcript;spoken=t;$('heard').textContent='Heard: “'+t+'”';
+  const x=$('lang').value.startsWith('en')?speechToExpr(t):cleanSpeech(t);$('spokenExpr').textContent=x||'—';$('speakCalc').disabled=$('speakEdit').disabled=!x};
+ rec.onerror=e=>{listening=false;$('mic').classList.remove('live');
+  const m={'not-allowed':'The microphone is blocked here. Claude pages may not be allowed to use the mic. Tap “Use keyboard dictation” below instead.','service-not-allowed':'The microphone is blocked here. Claude pages may not be allowed to use the mic. Tap “Use keyboard dictation” below instead.','no-speech':'I didn’t hear anything. Tap the microphone and try again.','audio-capture':'No microphone was found on this device.','network':'Speech service needs an internet connection.'};
+  er.textContent=m[e.error]||'Voice input failed ('+e.error+'). You can type instead.';er.classList.add('on')};
+ rec.onend=()=>{listening=false;$('mic').classList.remove('live');$('micState').textContent='Tap the microphone and say something like “2 plus 3 multiplied by 4”.'};
+ try{rec.start()}catch(e){}
+};
+$('speakCalc').onclick=()=>{const x=$('spokenExpr').textContent;const er=$('speakErr');er.classList.remove('on');
+ try{evaluate(x);run([x],'speak')}catch(e){er.textContent=e.message+' — tap “Edit expression” to fix it.';er.classList.add('on')}};
+$('speakEdit').onclick=()=>{$('typed').value=$('spokenExpr').textContent;go('type')};
+
+/* ---------- image + OCR (reads text with Claude; math done locally) ---------- */
+function pick(f){if(!f)return;$('imgErr').classList.remove('on');
+ if(!f.type.startsWith('image/')){return imgErr('Please choose an image file.')}
+ const img=new Image(),u=URL.createObjectURL(f);
+ img.onload=()=>{const m=1600,k=Math.min(1,m/Math.max(img.width,img.height)),c=document.createElement('canvas');
+  c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+  c.toBlob(b=>{imgBlob=b;$('pv').src=URL.createObjectURL(b);$('pvBox').style.display='block'},'image/jpeg',.85);URL.revokeObjectURL(u)};
+ img.onerror=()=>imgErr('That image couldn’t be opened. Try a JPG or PNG.');img.src=u}
+function imgErr(m){$('imgErr').textContent=m;$('imgErr').classList.add('on')}
+$('takeBtn').onclick=()=>$('camIn').click();$('upBtn').onclick=()=>$('fileIn').click();$('imgAgain').onclick=()=>{$('pvBox').style.display='none';$('fileIn').click()};
+$('camIn').onchange=e=>{pick(e.target.files[0]);e.target.value=''};$('fileIn').onchange=e=>{pick(e.target.files[0]);e.target.value=''};
+$('imgCalc').onclick=async()=>{
+ const btn=$('imgCalc');$('imgErr').classList.remove('on');if(!imgBlob)return;
+ btn.disabled=true;btn.innerHTML='<span class="spin"></span>Reading image…';
+ try{
+  const sample=window.claude&&await window.claude.use('sample');
+  if(!sample)throw Error('Image reading isn’t available here. Open this page in the Claude app or claude.ai while signed in, or use voice/typing.');
+  const lim=await sample.limits();if(!lim||!lim.images)throw Error('Image reading isn’t enabled for this page.');
+  const r=await sample('Read every math calculation visible in the attached image (photo, screenshot or handwriting). Return ONLY a JSON array of strings, one per calculation, written with digits and the symbols + - * / ^ ( ) % only (use * for ×, / for ÷). Do not include answers or "=" results and do not solve anything. If there is no calculation, return [].',{images:[imgBlob],modelTier:'quick',cache:false});
+  const m=(r.text||'').match(/\[[\s\S]*\]/);if(!m)throw Error('I couldn’t find any calculations in that image.');
+  const arr=JSON.parse(m[0]).filter(x=>typeof x==='string'&&x.trim()).slice(0,30);
+  if(!arr.length)throw Error('No calculations found. Try a sharper, closer image.');
+  run(arr,'image');
+ }catch(e){imgErr(e.code==='not_granted'?'Permission to read images was declined.':e.code==='rate_limited'?'Too many requests — wait a moment and try again.':(e.message||'Could not read the image.'))}
+ btn.disabled=false;btn.textContent='Calculate';
+};
+
+/* ---------- results actions ---------- */
+$('copyBtn').onclick=async()=>{
+ const ok=last.items.filter(x=>x.ans!==undefined);if(!ok.length)return;
+ const text=ok.length===1?ok[0].ans:ok.map(x=>normalize(x.expr)+' = '+x.ans).join('\n');
+ let done=false;try{await navigator.clipboard.writeText(text);done=true}catch(e){}
+ if(!done){const t=document.createElement('textarea');t.value=text;document.body.append(t);t.select();try{done=document.execCommand('copy')}catch(e){}t.remove()}
+ $('copyBtn').textContent=done?'Copied ✓':'Copy not allowed — select the text instead';setTimeout(()=>$('copyBtn').textContent='Copy answer',1800)};
+$('againBtn').onclick=()=>{const f=last.items[0];if(last.source==='image'){go('camera');return}$('typed').value=f?normalize(f.expr):'';go('type');$('typed').focus()};
+$('tryBtn').onclick=()=>go('home');
+</script></body></html>
